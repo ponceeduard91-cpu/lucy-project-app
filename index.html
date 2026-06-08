@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IPTV Lucy-xy</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    
+    <style>
+        /* INTERFAZ PREMIUM EVOLUCIONADA - ALEGRÍA ELECTRÓNICA */
+        body { 
+            background: radial-gradient(circle at top right, #1e1b4b 0%, #0f172a 45%, #020617 100%); 
+            color: #cbd5e1; 
+            font-family: system-ui, -apple-system, sans-serif; 
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Animación Aurora de fondo para dar más vida */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -20%; left: -20%; width: 140%; height: 140%;
+            background: radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 20% 80%, rgba(168, 85, 247, 0.1) 0%, transparent 50%);
+            z-index: -2;
+            filter: blur(40px);
+            animation: aurora 20s infinite alternate ease-in-out;
+        }
+
+        @keyframes aurora {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(4%, 4%) rotate(5deg); }
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 2px);
+            background-size: 32px 32px;
+            z-index: -1;
+            opacity: 0.8;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6366f1; }
+        
+        video { outline: none; border-radius: 12px; }
+        video::-webkit-media-controls-panel { background-image: linear-gradient(transparent, rgba(0, 0, 0, 0.9)); }
+
+        .brand-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            background: linear-gradient(to right, #ffffff 30%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+        }
+
+        .premium-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.45) 0%, rgba(15, 23, 42, 0.75) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+        }
+        
+        .premium-card:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 12px 30px -8px rgba(99, 102, 241, 0.15);
+        }
+
+        .nav-btn {
+            padding-bottom: 6px;
+            border-bottom: 2px solid transparent;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .active-nav {
+            color: #6366f1 !important;
+            border-color: #6366f1 !important;
+            text-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Estilo para simular carpetas de series físicas */
+        .folder-series-summary {
+            list-none: none;
+        }
+        .folder-series-summary::-webkit-details-marker {
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade { animation: fadeIn 0.25s ease-out forwards; }
+        .smooth-transition { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+    </style>
+</head>
+<body>
+
+    <header class="bg-slate-950/80 backdrop-blur-xl border-b border-indigo-950/50 sticky top-0 z-40 p-4 shadow-2xl">
+        <div class="max-w-6xl mx-auto flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
+            <div class="flex justify-between items-center">
+                <h1 onclick="switchTab('home')" class="brand-title cursor-pointer select-none flex items-center gap-2">
+                    <i class="fa-solid fa-play-css text-indigo-500 text-sm animate-pulse"></i> IPTV <span class="text-indigo-300 font-light">Lucy-xy</span>
+                </h1>
+                <button onclick="openModal()" class="sm:hidden bg-gradient-to-r from-indigo-950 to-slate-900 border border-indigo-800/60 text-indigo-200 px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-md">
+                    <i class="fa-solid fa-plus text-indigo-400 mr-1"></i> Listas
+                </button>
+            </div>
+            
+            <div class="relative flex-1 max-w-md mx-0 sm:mx-4">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                    <i class="fa-solid fa-magnifying-glass text-sm text-indigo-400"></i>
+                </span>
+                <input type="text" id="global-search" oninput="debounceSearch()" placeholder="Buscar tu entretenimiento..." class="w-full bg-slate-900/50 border border-slate-800/80 rounded-xl pl-9 pr-4 py-1.5 text-sm focus:outline-none focus:border-indigo-500 text-slate-200 placeholder-slate-500 shadow-inner smooth-transition">
+            </div>
+
+            <nav class="flex gap-4 text-xs sm:text-sm justify-center overflow-x-auto pb-1 sm:pb-0">
+                <button id="nav-home" onclick="switchTab('home')" class="nav-btn active-nav text-slate-400 hover:text-slate-100 cursor-pointer font-bold smooth-transition whitespace-nowrap"><i class="fa-solid fa-house mr-1 opacity-70"></i> Inicio</button>
+                <button id="nav-live" onclick="switchTab('live')" class="nav-btn text-slate-400 hover:text-slate-100 cursor-pointer font-bold smooth-transition whitespace-nowrap"><i class="fa-solid fa-tv mr-1 opacity-70"></i> Canales</button>
+                <button id="nav-vod" onclick="switchTab('vod')" class="nav-btn text-slate-400 hover:text-slate-100 cursor-pointer font-bold smooth-transition whitespace-nowrap"><i class="fa-solid fa-film mr-1 opacity-70"></i> Películas</button>
+                <button id="nav-series" onclick="switchTab('series')" class="nav-btn text-slate-400 hover:text-slate-100 cursor-pointer font-bold smooth-transition whitespace-nowrap"><i class="fa-solid fa-folder-closed mr-1 opacity-70"></i> Series</button>
+                <button id="nav-extras" onclick="switchTab('extras')" class="nav-btn text-slate-300 hover:text-indigo-300 cursor-pointer font-bold smooth-transition whitespace-nowrap"><i class="fa-solid fa-wand-magic-sparkles mr-1 text-indigo-400"></i> Mix</button>
+            </nav>
+            
+            <button onclick="openModal()" class="hidden sm:block bg-gradient-to-r from-indigo-950 to-slate-900 hover:from-indigo-900 text-indigo-200 px-4 py-1.5 rounded-xl text-xs font-bold cursor-pointer smooth-transition border border-indigo-800/60 shadow-lg">
+                <i class="fa-solid fa-plus mr-1 text-indigo-400"></i> Mis Listas
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto p-4 md:p-6 min-h-[80vh]">
+
+        <div class="premium-card rounded-2xl p-4 mb-6 border-l-4 border-l-indigo-500 relative overflow-hidden shadow-xl animate-fade bg-slate-900/20">
+            <div class="flex justify-between items-start gap-4 mb-2">
+                <div class="flex items-center gap-2 text-indigo-300 font-extrabold text-xs uppercase tracking-wider">
+                    <i class="fa-solid fa-circle-play text-indigo-400 animate-pulse"></i>
+                    <span>Panel de Control</span>
+                </div>
+                <div class="bg-indigo-950/60 border border-indigo-900/50 rounded-full px-3 py-0.5 flex items-center gap-2 text-[11px] font-bold text-indigo-300 shadow-md">
+                    <i class="fa-solid fa-eye text-[10px]"></i>
+                    <span>Sesiones: <strong id="visit-counter" class="text-white">1</strong></span>
+                </div>
+            </div>
+            <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
+                ¡Bienvenido a Lucy-xy! Catálogo sincronizado mediante base de datos remota. Si experimentas congelamientos o errores en transmisiones 4K, utiliza el botón "Abrir con..." para lanzar reproductores externos como VLC o MX Player.
+            </p>
+            <div class="flex justify-end items-center mt-3 pt-2 border-t border-slate-800/40 text-[10px] text-slate-400 gap-1.5 font-medium">
+                <i class="fa-solid fa-clock text-indigo-400"></i>
+                <span id="notice-date">Sincronizado hoy</span>
+            </div>
+        </div>
+
+        <section id="tab-home" class="tab-content animate-fade">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mt-2">
+                <div onclick="switchTab('live')" class="premium-card p-5 rounded-2xl smooth-transition cursor-pointer shadow-lg group relative overflow-hidden border-b-2 border-b-emerald-500/40">
+                    <div class="absolute -right-4 -bottom-4 text-emerald-500/5 text-7xl font-black group-hover:scale-110 smooth-transition"><i class="fa-solid fa-tv"></i></div>
+                    <div class="text-emerald-400 text-2xl mb-1.5 group-hover:text-emerald-300 smooth-transition"><i class="fa-solid fa-desktop animate-bounce"></i> <span class="font-black text-sm uppercase tracking-wider ml-2 text-slate-200">Canales TV</span></div>
+                    <p id="count-live" class="text-slate-400 text-xs font-medium">Grupos de canales: Cargando...</p>
+                </div>
+                <div onclick="switchTab('vod')" class="premium-card p-5 rounded-2xl smooth-transition cursor-pointer shadow-lg group relative overflow-hidden border-b-2 border-b-cyan-500/40">
+                    <div class="absolute -right-4 -bottom-4 text-cyan-500/5 text-7xl font-black group-hover:scale-110 smooth-transition"><i class="fa-solid fa-film"></i></div>
+                    <div class="text-cyan-400 text-2xl mb-1.5 group-hover:text-cyan-300 smooth-transition"><i class="fa-solid fa-clapperboard"></i> <span class="font-black text-sm uppercase tracking-wider ml-2 text-slate-200">Películas</span></div>
+                    <p id="count-vod" class="text-slate-400 text-xs font-medium">Categorías de películas: Cargando...</p>
+                </div>
+                <div onclick="switchTab('series')" class="premium-card p-5 rounded-2xl smooth-transition cursor-pointer shadow-lg group relative overflow-hidden border-b-2 border-b-indigo-500/40">
+                    <div class="absolute -right-4 -bottom-4 text-indigo-500/5 text-7xl font-black group-hover:scale-110 smooth-transition"><i class="fa-solid fa-folder-open"></i></div>
+                    <div class="text-indigo-400 text-2xl mb-1.5 group-hover:text-indigo-300 smooth-transition"><i class="fa-solid fa-folder-tree"></i> <span class="font-black text-sm uppercase tracking-wider ml-2 text-slate-200">Series</span></div>
+                    <p id="count-series" class="text-slate-400 text-xs font-medium">Categorías de series: Cargando...</p>
+                </div>
+                <div onclick="switchTab('extras')" class="premium-card p-5 rounded-2xl smooth-transition cursor-pointer shadow-lg group relative overflow-hidden border-b-2 border-b-fuchsia-500/40">
+                    <div class="absolute -right-4 -bottom-4 text-fuchsia-500/5 text-7xl font-black group-hover:scale-110 smooth-transition"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                    <div class="text-fuchsia-400 text-2xl mb-1.5 group-hover:text-fuchsia-200 smooth-transition"><i class="fa-solid fa-shuffle"></i> <span class="font-black text-sm uppercase tracking-wider ml-2 text-slate-200">Mix Extra</span></div>
+                    <p id="count-extras" class="text-slate-400 text-xs font-medium">Sugerencias aleatorias del sistema.</p>
+                </div>
+            </div>
+            <div class="flex justify-between items-center mt-8">
+                <button onclick="checkServerAndFetch(true)" class="bg-slate-900/60 text-xs font-bold px-4 py-2 rounded-xl text-indigo-300 hover:text-white border border-indigo-900/40 smooth-transition shadow-lg hover:bg-slate-800"><i class="fa-solid fa-rotate mr-1"></i> Actualizar Listas</button>
+                <span id="server-status" class="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-slate-950/80 text-slate-400 border border-slate-800/80 shadow-md">
+                    <span class="w-2 h-2 rounded-full bg-slate-600 mr-2" id="status-dot"></span> <span id="status-text">Desconectado</span>
+                </span>
+            </div>
+        </section>
+
+        <section id="tab-live" class="tab-content hidden animate-fade">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xs font-black border-l-2 border-emerald-500 pl-2 text-slate-200 uppercase tracking-wider">Canales en Vivo</h2>
+                <button id="back-btn-live" onclick="resetCategoryView('live')" class="hidden bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs px-3 py-1.5 rounded-xl border border-slate-800 smooth-transition"><i class="fa-solid fa-arrow-left mr-1 text-indigo-400"></i> Volver</button>
+            </div>
+            <div id="live-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"></div>
+        </section>
+
+        <section id="tab-vod" class="tab-content hidden animate-fade">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xs font-black border-l-2 border-cyan-500 pl-2 text-slate-200 uppercase tracking-wider">Películas Disponibles</h2>
+                <button id="back-btn-vod" onclick="resetCategoryView('vod')" class="hidden bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs px-3 py-1.5 rounded-xl border border-slate-800 smooth-transition"><i class="fa-solid fa-arrow-left mr-1 text-indigo-400"></i> Volver</button>
+            </div>
+            <div id="movies-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5"></div>
+        </section>
+
+        <section id="tab-series" class="tab-content hidden animate-fade">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xs font-black border-l-2 border-indigo-500 pl-2 text-slate-200 uppercase tracking-wider">Series de TV</h2>
+                <button id="back-btn-series" onclick="resetCategoryView('series')" class="hidden bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs px-3 py-1.5 rounded-xl border border-slate-800 smooth-transition"><i class="fa-solid fa-arrow-left mr-1 text-indigo-400"></i> Volver</button>
+            </div>
+            
+            <div id="series-seasons-container" class="premium-card p-5 rounded-2xl mb-6 hidden animate-fade bg-slate-950/40 border border-indigo-950">
+                <div class="flex justify-between items-center border-b border-indigo-900/40 pb-3 mb-4">
+                    <h3 id="series-episodes-title" class="text-xs font-black text-indigo-300 uppercase tracking-wider">Temporadas y Capítulos</h3>
+                    <button onclick="closeEpisodesView()" class="text-slate-400 hover:text-white text-xs font-bold smooth-transition bg-slate-900 px-3 py-1 rounded-xl border border-slate-800"><i class="fa-solid fa-xmark mr-1"></i> Cerrar</button>
+                </div>
+                <div id="seasons-accordion" class="space-y-4"></div>
+            </div>
+            <div id="series-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5"></div>
+        </section>
+
+        <section id="tab-extras" class="tab-content hidden animate-fade">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xs font-black border-l-2 border-fuchsia-500 pl-2 text-slate-200 uppercase tracking-wider">Películas Recomendadas</h2>
+                <button onclick="buildDynamicMovieSuggestions()" class="bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs px-3 py-1.5 rounded-xl border border-slate-800 smooth-transition font-bold flex items-center gap-1"><i class="fa-solid fa-shuffle text-fuchsia-400"></i> Mezclar Catálogo</button>
+            </div>
+            <div id="extras-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5"></div>
+        </section>
+
+    </main>
+
+    <div id="video-player-container" class="fixed inset-0 bg-black/90 backdrop-blur-xl z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-950 border border-slate-800 rounded-2xl w-full max-w-xl shadow-2xl p-4 flex flex-col gap-4 max-h-[90vh] overflow-y-auto animate-fade">
+            
+            <div class="flex justify-between items-center border-b border-slate-900 pb-2">
+                <span id="player-title" class="text-xs font-black text-slate-200 uppercase tracking-wider truncate max-w-[70vw]">Cargando Video...</span>
+                <i class="fa-solid fa-circle-play text-indigo-500 text-sm animate-spin"></i>
+            </div>
+            
+            <div class="w-full bg-black rounded-xl overflow-hidden aspect-video flex items-center justify-center border border-slate-900 shrink-0">
+                <video id="main-video-player" class="w-full h-full" controls playsinline></video>
+            </div>
+
+            <div class="bg-slate-900/60 border border-slate-900 p-2 rounded-xl text-[11px] font-mono text-slate-400 text-center select-all cursor-pointer hover:text-slate-200 smooth-transition truncate shrink-0">
+                <i class="fa-solid fa-link text-indigo-500 mr-1"></i> <span id="player-current-url">Ningún enlace disponible</span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 w-full pt-1 shrink-0">
+                <button onclick="openWithExternalPlayer()" class="bg-gradient-to-r from-indigo-950 to-indigo-900 hover:from-indigo-900 text-white py-2.5 px-2 rounded-xl text-[11px] font-bold smooth-transition flex flex-col sm:flex-row items-center justify-center gap-1.5 border border-indigo-700/50 shadow-md">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-xs text-indigo-300"></i> <span>Abrir con...</span>
+                </button>
+                <button onclick="triggerDownload()" class="bg-slate-900 hover:bg-slate-800 text-slate-200 py-2.5 px-2 rounded-xl text-[11px] font-bold smooth-transition flex flex-col sm:flex-row items-center justify-center gap-1.5 border border-slate-800 shadow-sm">
+                    <i class="fa-solid fa-download text-xs text-slate-400"></i> <span>Descargar</span>
+                </button>
+                <button onclick="copyCurrentPlayerUrl()" class="bg-slate-900 hover:bg-slate-800 text-slate-200 py-2.5 px-2 rounded-xl text-[11px] font-bold smooth-transition flex flex-col sm:flex-row items-center justify-center gap-1.5 border border-slate-800 shadow-sm">
+                    <i class="fa-solid fa-paperclip text-xs text-slate-400"></i> <span>Copiar Link</span>
+                </button>
+            </div>
+
+            <button onclick="closeVideoPlayer()" class="w-full bg-rose-950/40 hover:bg-rose-900/50 border border-rose-900/60 text-rose-300 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider smooth-transition mt-1 flex items-center justify-center gap-2 shrink-0">
+                <i class="fa-solid fa-circle-xmark"></i> Cerrar Reproductor
+            </button>
+        </div>
+    </div>
+
+    <div id="login-modal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-indigo-950 w-full max-w-md p-5 rounded-2xl shadow-2xl max-h-[85vh] flex flex-col relative animate-fade">
+            
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-500 hover:text-slate-200 p-1 z-10"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 class="text-sm font-black mb-3 text-slate-200 uppercase tracking-wider border-b border-slate-800/60 pb-2 shrink-0">Mis Listas IPTV</h3>
+            
+            <div id="lists-manager-container" class="space-y-2 overflow-y-auto mb-3 p-1 border-b border-slate-800 pb-3 max-h-[120px] shrink-0"></div>
+            
+            <h4 class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider mb-2 shrink-0"><i class="fa-solid fa-plus-circle"></i> Agregar Nueva Lista</h4>
+            
+            <div class="space-y-3 overflow-y-auto flex-1 pr-1 pb-2">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Nombre de la lista</label>
+                    <input type="text" id="xtream-name" placeholder="Ej: Mi Lista Premium" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Servidor / IP</label>
+                    <input type="text" id="xtream-url" placeholder="http://ejemplo.com:8080" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Usuario</label>
+                    <input type="text" id="xtream-user" placeholder="Tu usuario" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Contraseña</label>
+                    <div class="relative">
+                        <input type="password" id="xtream-pass" placeholder="Tu contraseña" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 pr-10 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                        <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 px-3 flex items-center text-slate-500 hover:text-slate-300 smooth-transition">
+                            <i class="fa-solid fa-eye" id="eye-icon"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex gap-2 mt-3 pt-2 border-t border-slate-800 shrink-0">
+                <button onclick="saveNewConfig()" class="flex-1 bg-gradient-to-r from-indigo-950 to-indigo-900 hover:from-indigo-900 text-white font-bold p-2.5 rounded-xl text-xs uppercase tracking-wider smooth-transition border border-indigo-700/50">Guardar Lista</button>
+                <button onclick="closeModal()" class="bg-slate-950 text-slate-400 font-bold p-2.5 px-4 rounded-xl text-xs uppercase hover:bg-slate-900 smooth-transition border border-slate-800">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let categoriesLive = [], categoriesMovie = [], categoriesSeries = [];
+        let currentFolderStreams = []; 
+        let indexScroll = 0;
+        const ITEMS_PER_PAGE = 45; 
+        let activeTab = 'home';
+        let viewMode = 'folders'; 
+        let globalCurrentUrl = ""; 
+        let currentStreamTitle = "video";
+        let hlsInstance = null; 
+        let searchTimeout = null;
+
+        let globalStreamsCache = { live: null, vod: null, series: null };
+        const CORS_PROXY = "https://api.allorigins.win/raw?url=";
+
+        function initCounters() {
+            let visits = localStorage.getItem('lucy_xy_total_visits');
+            if (!visits) { visits = 1; } else { visits = parseInt(visits) + 1; }
+            localStorage.setItem('lucy_xy_total_visits', visits);
+            document.getElementById('visit-counter').innerText = visits;
+
+            const now = new Date();
+            document.getElementById('notice-date').innerText = `Sincronizado: ${now.toLocaleDateString()} a las ${now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+        }
+
+        function togglePassword() {
+            const passInput = document.getElementById('xtream-pass');
+            const eyeIcon = document.getElementById('eye-icon');
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                eyeIcon.className = 'fa-solid fa-eye-slash';
+            } else {
+                passInput.type = 'password';
+                eyeIcon.className = 'fa-solid fa-eye';
+            }
+        }
+
+        function secureCopyText(textToCopy) {
+            if (!textToCopy) return;
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(textToCopy)
+                    .then(() => { alert("¡Enlace copiado al portapapeles!"); })
+                    .catch(() => { fallbackCopyMethod(textToCopy); });
+            } else { fallbackCopyMethod(textToCopy); }
+        }
+
+        function fallbackCopyMethod(textToCopy) {
+            const textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            textArea.style.position = "fixed"; textArea.style.opacity = "0";
+            document.body.appendChild(textArea);
+            textArea.focus(); textArea.select();
+            try { document.execCommand('copy'); alert("¡Enlace copiado al portapapeles!"); } 
+            catch (err) { alert("Error al copiar enlace."); }
+            document.body.removeChild(textArea);
+        }
+
+        function copyCurrentPlayerUrl() {
+            if (globalCurrentUrl) secureCopyText(globalCurrentUrl);
+        }
+
+        function getSavedLists() {
+            const lists = localStorage.getItem('iptv_multi_lists');
+            return lists ? JSON.parse(lists) : [];
+        }
+
+        function renderListsManager() {
+            const lists = getSavedLists();
+            const container = document.getElementById('lists-manager-container');
+            const activeIndex = localStorage.getItem('iptv_active_index') || 0;
+            
+            if (lists.length === 0) {
+                container.innerHTML = `<p class="text-slate-500 text-xs text-center py-2">No hay listas guardadas.</p>`;
+                return;
+            }
+
+            let html = '';
+            lists.forEach((list, idx) => {
+                const isActive = idx == activeIndex;
+                html += `
+                    <div class="flex items-center justify-between p-2 rounded-xl ${isActive ? 'bg-indigo-950/40 border border-indigo-900/60' : 'bg-slate-950/40 border border-slate-900'}">
+                        <div onclick="selectList(${idx})" class="flex-1 cursor-pointer flex items-center gap-2 truncate">
+                            <i class="fa-solid ${isActive ? 'fa-circle-check text-indigo-400' : 'fa-circle text-slate-700'} text-xs"></i>
+                            <span class="text-xs font-bold ${isActive ? 'text-slate-100' : 'text-slate-400'} truncate">${list.name}</span>
+                        </div>
+                        <button onclick="deleteList(${idx})" class="text-slate-600 hover:text-rose-400 p-1 px-2 text-xs smooth-transition"><i class="fa-solid fa-trash"></i></button>
+                    </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function selectList(index) {
+            const lists = getSavedLists();
+            if(!lists[index]) return;
+            localStorage.setItem('iptv_active_index', index);
+            localStorage.setItem('iptv_url', lists[index].url);
+            localStorage.setItem('iptv_user', lists[index].user);
+            localStorage.setItem('iptv_pass', lists[index].pass);
+            renderListsManager(); closeModal(); checkServerAndFetch(true);
+        }
+
+        function deleteList(index) {
+            let lists = getSavedLists();
+            let activeIndex = localStorage.getItem('iptv_active_index') || 0;
+            lists.splice(index, 1);
+            localStorage.setItem('iptv_multi_lists', JSON.stringify(lists));
+            
+            if (index == activeIndex) {
+                localStorage.setItem('iptv_active_index', 0);
+                if (lists.length > 0) {
+                    localStorage.setItem('iptv_url', lists[0].url);
+                    localStorage.setItem('iptv_user', lists[0].user);
+                    localStorage.setItem('iptv_pass', lists[0].pass);
+                } else {
+                    localStorage.removeItem('iptv_url'); localStorage.removeItem('iptv_user'); localStorage.removeItem('iptv_pass');
+                }
+            } else if (index < activeIndex) { localStorage.setItem('iptv_active_index', activeIndex - 1); }
+            renderListsManager(); checkServerAndFetch(true);
+        }
+
+        function saveNewConfig() {
+            const name = document.getElementById('xtream-name').value.trim();
+            const url = document.getElementById('xtream-url').value.trim();
+            const user = document.getElementById('xtream-user').value.trim();
+            const pass = document.getElementById('xtream-pass').value.trim();
+
+            if (!name || !url || !user || !pass) { alert("Por favor rellena todos los campos."); return; }
+
+            const newList = { name, url, user, pass };
+            let lists = getSavedLists();
+            lists.push(newList);
+            localStorage.setItem('iptv_multi_lists', JSON.stringify(lists));
+            
+            const newIndex = lists.length - 1;
+            localStorage.setItem('iptv_active_index', newIndex);
+            localStorage.setItem('iptv_url', url); localStorage.setItem('iptv_user', user); localStorage.setItem('iptv_pass', pass);
+
+            document.getElementById('xtream-name').value = ''; document.getElementById('xtream-url').value = '';
+            document.getElementById('xtream-user').value = ''; document.getElementById('xtream-pass').value = '';
+            
+            const passInput = document.getElementById('xtream-pass');
+            if (passInput.type === 'text') togglePassword();
+
+            renderListsManager(); closeModal(); switchTab('home'); checkServerAndFetch(true);
+        }
+
+        function switchTab(tabId) {
+            activeTab = tabId;
+            document.getElementById('global-search').value = ''; 
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active-nav'));
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if (activeBtn) activeBtn.classList.add('active-nav');
+
+            closeEpisodesView();
+            if(tabId === 'extras') {
+                buildDynamicMovieSuggestions();
+            } else if(tabId !== 'home') {
+                resetCategoryView(tabId);
+            }
+        }
+
+        function openModal() { 
+            renderListsManager(); 
+            const m = document.getElementById('login-modal');
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+        }
+        
+        function closeModal() { 
+            const m = document.getElementById('login-modal');
+            m.classList.add('hidden');
+            m.classList.remove('flex');
+        }
+
+        function updateStatusIndicator(type, text) {
+            const dot = document.getElementById('status-dot');
+            const txt = document.getElementById('status-text');
+            txt.innerText = text;
+            dot.className = "w-2 h-2 rounded-full mr-2 smooth-transition"; 
+            if (type === 'success') {
+                dot.classList.add('bg-emerald-500', 'shadow-[0_0_8px_#10b981]'); 
+            } else if (type === 'loading') {
+                dot.classList.add('bg-indigo-400', 'animate-pulse');
+            } else {
+                dot.classList.add('bg-rose-500'); 
+            }
+        }
+
+        async function myFetch(targetUrl) {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 4000);
+                const r = await fetch(targetUrl, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                return await r.json();
+            } catch(e) {
+                const proxyUrl = CORS_PROXY + encodeURIComponent(targetUrl);
+                const r = await fetch(proxyUrl);
+                return await r.json();
+            }
+        }
+
+        async function checkServerAndFetch(forceRefresh = false) {
+            const url = localStorage.getItem('iptv_url');
+            const user = localStorage.getItem('iptv_user');
+            const pass = localStorage.getItem('iptv_pass');
+            
+            if (!url || !user || !pass) {
+                updateStatusIndicator('error', 'Sin Configuración');
+                return openModal();
+            }
+
+            if(forceRefresh) {
+                document.getElementById('count-live').innerText = `Grupos de canales: Cargando...`;
+                document.getElementById('count-vod').innerText = `Categorías de películas: Cargando...`;
+                document.getElementById('count-series').innerText = `Categorías de series: Cargando...`;
+                globalStreamsCache = { live: null, vod: null, series: null };
+            }
+
+            updateStatusIndicator('loading', 'Sincronizando...');
+            try {
+                const data = await myFetch(`${url}/player_api.php?username=${user}&password=${pass}`);
+                if (data.user_info && data.user_info.auth === 1) {
+                    updateStatusIndicator('success', 'Sistema Activo');
+                    fetchCategoriesOnly(url, user, pass);
+                } else { updateStatusIndicator('error', 'Credenciales Inválidas'); }
+            } catch { updateStatusIndicator('error', 'Error de Conexión'); }
+        }
+
+        async function fetchCategoriesOnly(url, user, pass) {
+            try {
+                const [liveData, movieData, seriesData] = await Promise.all([
+                    myFetch(`${url}/player_api.php?username=${user}&password=${pass}&action=get_live_categories`),
+                    myFetch(`${url}/player_api.php?username=${user}&password=${pass}&action=get_vod_categories`),
+                    myFetch(`${url}/player_api.php?username=${user}&password=${pass}&action=get_series_categories`)
+                ]);
+
+                categoriesLive = Array.isArray(liveData) ? liveData : (typeof liveData === 'object' ? Object.values(liveData) : []);
+                categoriesMovie = Array.isArray(movieData) ? movieData : (typeof movieData === 'object' ? Object.values(movieData) : []);
+                categoriesSeries = Array.isArray(seriesData) ? seriesData : (typeof seriesData === 'object' ? Object.values(seriesData) : []);
+                
+                document.getElementById('count-live').innerText = `Grupos de canales: ${categoriesLive.length}`;
+                document.getElementById('count-vod').innerText = `Categorías de películas: ${categoriesMovie.length}`;
+                document.getElementById('count-series').innerText = `Categorías de series: ${categoriesSeries.length}`;
+
+                if(activeTab !== 'home' && activeTab !== 'extras') resetCategoryView(activeTab);
+            } catch (error) { console.error("Error al cargar", error); }
+        }
+
+        async function buildDynamicMovieSuggestions() {
+            const container = document.getElementById('extras-container');
+            container.innerHTML = `<p class="text-indigo-400 col-span-full text-center py-10 text-xs font-bold animate-pulse"><i class="fa-solid fa-shuffle animate-spin mr-2"></i> Ordenando recomendaciones...</p>`;
+
+            const baseUrl = localStorage.getItem('iptv_url');
+            const user = localStorage.getItem('iptv_user');
+            const pass = localStorage.getItem('iptv_pass');
+
+            if (!globalStreamsCache.vod) {
+                try {
+                    let data = await myFetch(`${baseUrl}/player_api.php?username=${user}&password=${pass}&action=get_vod_streams`);
+                    globalStreamsCache.vod = Array.isArray(data) ? data : (typeof data === 'object' ? Object.values(data) : []);
+                } catch(e) {
+                    container.innerHTML = `<p class="text-slate-500 col-span-full text-center py-10 text-xs"><i class="fa-solid fa-triangle-exclamation text-xl block mb-2 opacity-50"></i>Ingresa a Películas primero para activar sugerencias.</p>`;
+                    return;
+                }
+            }
+
+            const moviesPool = globalStreamsCache.vod || [];
+            if (moviesPool.length === 0) {
+                container.innerHTML = `<p class="text-slate-500 col-span-full text-center py-10 text-xs"><i class="fa-solid fa-clapperboard text-2xl block mb-2 opacity-40"></i>Catálogo vacío.</p>`;
+                return;
+            }
+
+            const shuffled = [...moviesPool].sort(() => 0.5 - Math.random());
+            const selection = shuffled.slice(0, 15);
+
+            const template = document.createElement('template');
+            let htmlBlock = '';
+            selection.forEach(item => {
+                const name = item.name || 'Sin Título';
+                const streamUrl = `${baseUrl}/movie/${user}/${pass}/${item.stream_id}.${item.container_extension || 'mp4'}`;
+                htmlBlock += buildVerticalPosterCard(name, item.stream_icon || '', streamUrl, 'vod');
+            });
+            
+            template.innerHTML = htmlBlock;
+            container.innerHTML = '';
+            container.appendChild(template.content);
+        }
+
+        function resetCategoryView(type) {
+            viewMode = 'folders';
+            document.getElementById('global-search').value = '';
+            let container, categoriesList;
+
+            if (type === 'live') { container = document.getElementById('live-container'); categoriesList = categoriesLive; document.getElementById('back-btn-live').classList.add('hidden'); }
+            else if (type === 'vod') { container = document.getElementById('movies-container'); categoriesList = categoriesMovie; document.getElementById('back-btn-vod').classList.add('hidden'); }
+            else if (type === 'series') { container = document.getElementById('series-container'); categoriesList = categoriesSeries; document.getElementById('back-btn-series').classList.add('hidden'); }
+            else return;
+
+            const template = document.createElement('template');
+            let html = '';
+            categoriesList.forEach(cat => {
+                const catName = cat.category_name || 'Desconocido';
+                html += `
+                    <div data-id="${cat.category_id}" class="folder-card premium-card rounded-2xl p-4 flex flex-col items-center justify-center text-center cursor-pointer shadow-md group animate-fade border border-indigo-950/40 bg-slate-900/10">
+                        <div class="text-indigo-400 text-3xl mb-2 group-hover:text-indigo-300 smooth-transition group-hover:scale-110"><i class="fa-solid fa-folder shadow-sm"></i></div>
+                        <span class="text-xs font-bold text-slate-300 tracking-wide line-clamp-2 uppercase group-hover:text-white">${catName}</span>
+                    </div>`;
+            });
+            
+            template.innerHTML = html;
+            container.innerHTML = '';
+            container.appendChild(template.content);
+        }
+
+        async function openFolder(type, categoryId) {
+            viewMode = 'streams';
+            indexScroll = 0;
+            document.getElementById('global-search').value = '';
+            let container;
+
+            const baseUrl = localStorage.getItem('iptv_url');
+            const user = localStorage.getItem('iptv_user');
+            const pass = localStorage.getItem('iptv_pass');
+
+            if (type === 'live') { container = document.getElementById('live-container'); document.getElementById('back-btn-live').classList.remove('hidden'); }
+            else if (type === 'vod') { container = document.getElementById('movies-container'); document.getElementById('back-btn-vod').classList.remove('hidden'); }
+            else if (type === 'series') { container = document.getElementById('series-container'); document.getElementById('back-btn-series').classList.remove('hidden'); }
+            else return;
+
+            container.innerHTML = `<p class="text-indigo-400 col-span-full text-center py-10 text-xs font-bold animate-pulse"><i class="fa-solid fa-circle-notch animate-spin mr-2"></i> Leyendo contenidos...</p>`;
+
+            try {
+                let action = type === 'live' ? 'get_live_streams' : (type === 'vod' ? 'get_vod_streams' : 'get_series');
+                let data = await myFetch(`${baseUrl}/player_api.php?username=${user}&password=${pass}&action=${action}&category_id=${categoryId}`);
+                
+                if (data && typeof data === 'object' && !Array.isArray(data)) { currentFolderStreams = Object.values(data); } 
+                else if (Array.isArray(data)) { currentFolderStreams = data; } 
+                else { currentFolderStreams = []; }
+
+                container.innerHTML = '';
+                if(currentFolderStreams.length === 0) {
+                    container.innerHTML = `<p class="text-slate-500 col-span-full text-center py-10 text-xs animate-fade"><i class="fa-solid fa-folder-open text-xl block mb-2 opacity-40"></i>Sin elementos.</p>`;
+                    return;
+                }
+                loadMoreStreams(type, container, currentFolderStreams);
+            } catch(e) { container.innerHTML = `<p class="text-slate-500 col-span-full text-center py-10 text-xs animate-fade"><i class="fa-solid fa-triangle-exclamation text-xl block mb-2"></i>Error de lectura.</p>`; }
+        }
+
+        function loadMoreStreams(type, container, streamList) {
+            if (indexScroll >= streamList.length) return;
+            const baseUrl = localStorage.getItem('iptv_url');
+            const user = localStorage.getItem('iptv_user');
+            const pass = localStorage.getItem('iptv_pass');
+            
+            const slice = streamList.slice(indexScroll, indexScroll + ITEMS_PER_PAGE);
+            const template = document.createElement('template');
+            let htmlBlock = '';
+            
+            slice.forEach(item => {
+                let streamUrl, icon;
+                const name = item.name || 'Sin Título';
+                if (type === 'vod') {
+                    streamUrl = `${baseUrl}/movie/${user}/${pass}/${item.stream_id}.${item.container_extension || 'mp4'}`;
+                    icon = item.stream_icon || '';
+                    htmlBlock += buildVerticalPosterCard(name, icon, streamUrl, 'vod');
+                } else if (type === 'live') {
+                    streamUrl = `${baseUrl}/live/${user}/${pass}/${item.stream_id}.m3u8`;
+                    icon = item.stream_icon || '';
+                    htmlBlock += buildLiveCard(name, icon, streamUrl, type);
+                } else if (type === 'series') {
+                    icon = item.cover || '';
+                    htmlBlock += buildSeriesCard(name, icon, item.series_id);
+                }
+            });
+
+            template.innerHTML = htmlBlock;
+            requestAnimationFrame(() => {
+                container.appendChild(template.content);
+            });
+            indexScroll += ITEMS_PER_PAGE;
+        }
+
+        function debounceSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => { triggerInstantSearch(); }, 300);
+        }
+
+        async function triggerInstantSearch() {
+            const query = document.getElementById('global-search').value.trim().toLowerCase();
+            let container, type;
+
+            if (activeTab === 'live') { container = document.getElementById('live-container'); type = 'live'; }
+            else if (activeTab === 'vod') { container = document.getElementById('movies-container'); type = 'vod'; }
+            else if (activeTab === 'series') { container = document.getElementById('series-container'); type = 'series'; }
+            else return;
+
+            if (query === '') {
+                if (viewMode === 'global_search') { resetCategoryView(type); } 
+                else if (viewMode === 'streams') {
+                    container.innerHTML = ''; indexScroll = 0;
+                    loadMoreStreams(type, container, currentFolderStreams);
+                }
+                return;
+            }
+
+            if (viewMode === 'folders') {
+                viewMode = 'global_search';
+                document.getElementById(`back-btn-${type}`).classList.remove('hidden');
+            }
+
+            if (viewMode === 'global_search') {
+                if (!globalStreamsCache[type]) {
+                    container.innerHTML = `<p class="text-indigo-400 col-span-full text-center py-10 text-xs font-bold animate-pulse"><i class="fa-solid fa-database block text-xl mb-2 text-indigo-500"></i> Buscando en el catálogo global...</p>`;
+                    const baseUrl = localStorage.getItem('iptv_url');
+                    const user = localStorage.getItem('iptv_user');
+                    const pass = localStorage.getItem('iptv_pass');
+                    let action = type === 'live' ? 'get_live_streams' : (type === 'vod' ? 'get_vod_streams' : 'get_series');
+                    
+                    try {
+                        let data = await myFetch(`${baseUrl}/player_api.php?username=${user}&password=${pass}&action=${action}`);
+                        globalStreamsCache[type] = Array.isArray(data) ? data : (typeof data === 'object' ? Object.values(data) : []);
+                    } catch(e) { globalStreamsCache[type] = currentFolderStreams; }
+                }
+                const filtered = (globalStreamsCache[type] || []).filter(item => item.name && item.name.toLowerCase().includes(query));
+                renderSearchResults(type, container, filtered);
+            } else if (viewMode === 'streams') {
+                const filtered = currentFolderStreams.filter(item => item.name && item.name.toLowerCase().includes(query));
+                renderSearchResults(type, container, filtered);
+            }
+        }
+
+        function renderSearchResults(type, container, filteredList) {
+            if (filteredList.length === 0) { 
+                container.innerHTML = `<p class="text-slate-500 col-span-full text-center py-10 text-xs">Sin coincidencias.</p>`; 
+                return; 
+            }
+
+            const baseUrl = localStorage.getItem('iptv_url');
+            const user = localStorage.getItem('iptv_user');
+            const pass = localStorage.getItem('iptv_pass');
+            const slice = filteredList.slice(0, 60); 
+            
+            const template = document.createElement('template');
+            let htmlBlock = '';
+
+            slice.forEach(item => {
+                let streamUrl, icon;
+                const name = item.name || 'Sin Título';
+                if (type === 'vod') {
+                    streamUrl = `${baseUrl}/movie/${user}/${pass}/${item.stream_id}.${item.container_extension || 'mp4'}`;
+                    icon = item.stream_icon || '';
+                    htmlBlock += buildVerticalPosterCard(name, icon, streamUrl, 'vod');
+                } else if (type === 'live') {
+                    streamUrl = `${baseUrl}/live/${user}/${pass}/${item.stream_id}.m3u8`;
+                    icon = item.stream_icon || '';
+                    htmlBlock += buildLiveCard(name, icon, streamUrl, type);
+                } else {
+                    icon = item.cover || '';
+                    htmlBlock += buildSeriesCard(name, icon, item.series_id);
+                }
+            });
+
+            template.innerHTML = htmlBlock;
+            requestAnimationFrame(() => {
+                container.innerHTML = '';
+                container.appendChild(template.content);
+            });
+        }
+
+        async function openSeriesInfo(seriesName, seriesId) {
+            const baseUrl = localStorage.getItem('iptv_url');
+            const user = localStorage.getItem('iptv_user');
+            const pass = localStorage.getItem('iptv_pass');
+            
+            const infoContainer = document.getElementById('series-seasons-container');
+            const accordion = document.getElementById('seasons-accordion');
+            const title = document.getElementById('series-episodes-title');
+
+            title.innerText = `SERIE: ${seriesName}`;
+            accordion.innerHTML = `<p class="text-indigo-400 text-xs py-4 text-center font-bold animate-pulse"><i class="fa-solid fa-circle-notch animate-spin mr-1"></i> Desplegando temporadas en carpetas...</p>`;
+            infoContainer.classList.remove('hidden');
+            infoContainer.scrollIntoView({ behavior: 'smooth' });
+
+            try {
+                const data = await myFetch(`${baseUrl}/player_api.php?username=${user}&password=${pass}&action=get_series_info&series_id=${seriesId}`);
+                if (!data || !data.episodes) { accordion.innerHTML = `<p class="text-slate-500 text-xs text-center py-4">Episodios no encontrados.</p>`; return; }
+
+                const template = document.createElement('template');
+                let finalHtml = '';
+                const seasons = Object.keys(data.episodes);
+
+                seasons.forEach((seasonNum, sIdx) => {
+                    const episodesList = data.episodes[seasonNum];
+                    let episodesHtml = '';
+                    
+                    episodesList.forEach(ep => {
+                        const epUrl = `${baseUrl}/series/${user}/${pass}/${ep.id}.${ep.container_extension || 'mp4'}`;
+                        const epTitle = ep.title || `Episodio ${ep.episode_num || '?'}`;
+                        const cleanEpTitle = epTitle.replace(/'/g, "\\'").replace(/"/g, '\\"');
+
+                        episodesHtml += `
+                            <div class="episode-row flex justify-between items-center bg-slate-900/40 border border-slate-800 p-2.5 rounded-xl hover:border-indigo-500/60 smooth-transition" data-title="${cleanEpTitle}" data-url="${epUrl}">
+                                <div class="truncate max-w-[50%] sm:max-w-[70%] flex items-center gap-2">
+                                    <span class="bg-indigo-950 text-indigo-400 text-[10px] font-black px-1.5 py-0.5 rounded border border-indigo-900">E${ep.episode_num || '0'}</span>
+                                    <span class="text-xs font-semibold text-slate-200 truncate">${epTitle}</span>
+                                </div>
+                                <div class="flex items-center gap-1 sm:gap-2 shrink-0">
+                                    <button class="play-ep-btn bg-indigo-950/60 hover:bg-indigo-900 text-indigo-200 border border-indigo-800/60 px-3 py-1 rounded-lg text-[11px] font-black tracking-wide cursor-pointer smooth-transition shadow-sm">Ver</button>
+                                    <button onclick="secureCopyText('${epUrl}')" class="text-slate-500 hover:text-indigo-400 p-1 px-1.5 text-xs smooth-transition" title="Copiar Link"><i class="fa-solid fa-link"></i></button>
+                                    <a href="${epUrl}" download="${cleanEpTitle}.mp4" target="_blank" class="text-slate-500 hover:text-indigo-400 p-1 px-1.5 text-xs smooth-transition" title="Descargar"><i class="fa-solid fa-cloud-arrow-down"></i></a>
+                                </div>
+                            </div>`;
+                    });
+
+                    // DISEÑO ESTILO CARPETA DE DESPLIEGUE CONTINUO
+                    const isFirst = sIdx === 0 ? 'open' : '';
+                    finalHtml += `
+                        <div class="bg-slate-900/30 border border-slate-800/80 rounded-xl overflow-hidden shadow-md animate-fade">
+                            <details class="group" ${isFirst}>
+                                <summary class="folder-series-summary flex justify-between items-center p-3.5 font-black text-xs uppercase text-slate-200 bg-gradient-to-r from-slate-900 to-slate-950 cursor-pointer select-none border-b border-slate-950">
+                                    <div class="flex items-center gap-2 text-indigo-400 group-open:text-indigo-300">
+                                        <i class="fa-solid fa-folder group-open:hidden text-sm"></i>
+                                        <i class="fa-solid fa-folder-open hidden group-open:inline text-sm text-indigo-400"></i>
+                                        <span class="text-slate-300 font-bold">Temporada ${seasonNum}</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-[10px] font-bold px-2 py-0.5 bg-slate-950 text-slate-400 rounded-full border border-slate-800">${episodesList.length} Cap</span>
+                                        <i class="fa-solid fa-chevron-right text-[10px] group-open:rotate-90 smooth-transition text-slate-500"></i>
+                                    </div>
+                                </summary>
+                                <div class="p-3 bg-slate-950/30 space-y-2 border-t border-indigo-950/40 max-h-[320px] overflow-y-auto">${episodesHtml}</div>
+                            </details>
+                        </div>`;
+                });
+                
+                template.innerHTML = finalHtml;
+                requestAnimationFrame(() => {
+                    accordion.innerHTML = '';
+                    accordion.appendChild(template.content);
+                });
+            } catch(e) { accordion.innerHTML = `<p class="text-slate-500 text-xs text-center py-4">Error de estructura.</p>`; }
+        }
+
+        function closeEpisodesView() { if(document.getElementById('series-seasons-container')) document.getElementById('series-seasons-container').classList.add('hidden'); }
+
+        function playStream(title, url, streamType = 'vod') {
+            globalCurrentUrl = url; currentStreamTitle = title;
+            document.getElementById('player-title').innerText = title;
+            document.getElementById('player-current-url').innerText = url;
+            
+            const vp = document.getElementById('video-player-container');
+            vp.classList.remove('hidden');
+            vp.classList.add('flex');
+
+            const video = document.getElementById('main-video-player');
+            video.pause(); video.removeAttribute('src'); video.load();
+            if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
+
+            let finalPlayUrl = url;
+            if (window.location.protocol === 'https:' && url.startsWith('http://')) {
+                finalPlayUrl = CORS_PROXY + encodeURIComponent(url);
+            }
+
+            if (streamType === 'live') {
+                if (Hls.isSupported()) {
+                    hlsInstance = new Hls({ debug: false });
+                    hlsInstance.loadSource(finalPlayUrl); hlsInstance.attachMedia(video);
+                    hlsInstance.on(Hls.Events.MANIFEST_PARSED, function() { video.play(); });
+                    hlsInstance.on(Hls.Events.ERROR, function(event, data) { if (data.fatal) { hlsInstance.loadSource(url); } });
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) { video.src = finalPlayUrl; video.play(); }
+            } else { video.src = finalPlayUrl; video.play().catch(e => { video.src = url; video.play(); }); }
+        }
+
+        function closeVideoPlayer() {
+            const video = document.getElementById('main-video-player');
+            video.pause(); video.removeAttribute('src'); video.load();
+            if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
+            globalCurrentUrl = ""; 
+            
+            const vp = document.getElementById('video-player-container');
+            vp.classList.add('hidden');
+            vp.classList.remove('flex');
+        }
+
+        function openWithExternalPlayer() { if (globalCurrentUrl) openWithExternalPlayerCustom(globalCurrentUrl); }
+
+        function openWithExternalPlayerCustom(url) {
+            const targetUrl = url.trim();
+            const isHttps = targetUrl.startsWith('https');
+            const cleanUrl = targetUrl.replace(/^https?:\/\//, '');
+            const scheme = isHttps ? 'https' : 'http';
+            const intentUri = `intent://${cleanUrl}#Intent;action=android.intent.action.VIEW;scheme=${scheme};type=video/*;end;`;
+            const a = document.createElement('a');
+            a.href = intentUri; a.target = '_top'; 
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+
+        function triggerDownload() { if (globalCurrentUrl) { const a = document.createElement('a'); a.href = globalCurrentUrl; a.download = `${currentStreamTitle}.mp4`; a.target = '_blank'; document.body.appendChild(a); a.click(); document.body.removeChild(a); } }
+
+        function buildVerticalPosterCard(name, img, url, type) {
+            const fallbackPoster = 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=300&h=450&fit=crop';
+            return `
+                <div class="stream-card relative flex flex-col bg-slate-900/20 border border-slate-800/80 rounded-2xl overflow-hidden group hover:border-indigo-500/50 smooth-transition shadow-xl" data-name="${name}" data-url="${url}" data-type="${type}">
+                    <div class="relative w-full aspect-[2/3] bg-slate-950 overflow-hidden cursor-pointer target-play">
+                        <img src="${img || fallbackPoster}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='${fallbackPoster}'" loading="lazy">
+                        <div class="absolute inset-0 bg-slate-950/60 flex items-center justify-center opacity-0 group-hover:opacity-100 smooth-transition">
+                            <i class="fa-solid fa-play text-4xl text-indigo-400 drop-shadow-[0_0_15px_rgba(99,102,241,0.6)]"></i>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-slate-950/95 border-t border-slate-900/60 flex justify-between items-center gap-1">
+                        <h4 class="font-bold text-xs text-slate-300 truncate flex-1 uppercase tracking-wide cursor-pointer target-play group-hover:text-white smooth-transition">${name}</h4>
+                        <button class="copy-card-btn text-slate-600 hover:text-indigo-400 text-[11px] px-1 smooth-transition" title="Copiar enlace directo"><i class="fa-solid fa-link"></i></button>
+                    </div>
+                </div>`;
+        }
+
+        function buildSeriesCard(name, img, seriesId) {
+            const fallbackPoster = 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=300&h=450&fit=crop';
+            return `
+                <div class="series-card relative flex flex-col bg-slate-900/20 border border-slate-800/80 rounded-2xl overflow-hidden group hover:border-indigo-500/50 smooth-transition shadow-xl cursor-pointer" data-name="${name}" data-id="${seriesId}">
+                    <div class="relative w-full aspect-[2/3] bg-slate-950 overflow-hidden">
+                        <img src="${img || fallbackPoster}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='${fallbackPoster}'" loading="lazy">
+                        <div class="absolute inset-0 bg-indigo-950/70 flex items-center justify-center opacity-0 group-hover:opacity-100 smooth-transition">
+                            <div class="bg-slate-950 border border-indigo-500/30 text-indigo-400 rounded-xl w-12 h-12 flex items-center justify-center shadow-2xl">
+                                <i class="fa-solid fa-folder-open text-base animate-pulse"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-slate-950/95 border-t border-slate-900/60">
+                        <h4 class="font-bold text-xs text-slate-300 truncate group-hover:text-indigo-300 smooth-transition uppercase tracking-wide">${name}</h4>
+                    </div>
+                </div>`;
+        }
+
+        function buildLiveCard(name, img, url, tabType = 'live') {
+            const fallbackLogo = 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=200';
+            return `
+                <div class="stream-card bg-slate-900/30 border border-slate-800/80 rounded-2xl p-3 flex flex-col items-center justify-between text-center hover:border-emerald-500/40 smooth-transition shadow-lg group relative" data-name="${name}" data-url="${url}" data-type="${tabType}">
+                    <div class="w-full aspect-video bg-slate-950 rounded-xl overflow-hidden flex items-center justify-center p-2 relative border border-slate-900/80 cursor-pointer target-play">
+                        <img src="${img || fallbackLogo}" class="max-w-full max-h-full object-contain" onerror="this.src='${fallbackLogo}'" loading="lazy">
+                        <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center smooth-transition">
+                            <i class="fa-solid fa-satellite-dish text-2xl text-emerald-400 drop-shadow-[0_0_10px_rgba(16,185,129,0.5)]"></i>
+                        </div>
+                    </div>
+                    <div class="w-full flex items-center justify-between gap-1 mt-2.5">
+                        <span class="text-[11px] font-bold text-slate-400 tracking-wide line-clamp-1 flex-1 uppercase text-left group-hover:text-emerald-400 smooth-transition cursor-pointer target-play">${name}</span>
+                        <button class="copy-card-btn text-slate-600 hover:text-slate-400 text-[11px] px-1 smooth-transition" title="Copiar enlace directo"><i class="fa-solid fa-link"></i></button>
+                    </div>
+                </div>`;
+        }
+
+        function initAppEventListeners() {
+            const containers = ['live-container', 'movies-container', 'series-container', 'extras-container'];
+            
+            containers.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                
+                el.addEventListener('click', function(e) {
+                    const folderCard = e.target.closest('.folder-card');
+                    if (folderCard) {
+                        const catId = folderCard.getAttribute('data-id');
+                        openFolder(activeTab, catId);
+                        return;
+                    }
+
+                    const streamCard = e.target.closest('.stream-card');
+                    if (streamCard) {
+                        const name = streamCard.getAttribute('data-name');
+                        const url = streamCard.getAttribute('data-url');
+                        const type = streamCard.getAttribute('data-type');
+
+                        if (e.target.closest('.copy-card-btn')) {
+                            e.stopPropagation();
+                            secureCopyText(url);
+                        } else {
+                            playStream(name, url, type);
+                        }
+                        return;
+                    }
+
+                    const seriesCard = e.target.closest('.series-card');
+                    if (seriesCard) {
+                        const name = seriesCard.getAttribute('data-name');
+                        const seriesId = seriesCard.getAttribute('data-id');
+                        openSeriesInfo(name, seriesId);
+                        return;
+                    }
+                });
+            });
+
+            const accordion = document.getElementById('seasons-accordion');
+            if (accordion) {
+                accordion.addEventListener('click', function(e) {
+                    const row = e.target.closest('.episode-row');
+                    if (!row) return;
+                    
+                    const title = row.getAttribute('data-title');
+                    const url = row.getAttribute('data-url');
+
+                    if (e.target.closest('.play-ep-btn')) {
+                        playStream(title, url, 'series');
+                    }
+                });
+            }
+        }
+
+        window.onscroll = function() {
+            const query = document.getElementById('global-search').value.trim();
+            if (query === '' && viewMode === 'streams' && (window.innerHeight + window.scrollY) >= document.body.offsetHeight - 600) {
+                let container = document.getElementById(`${activeTab}-container`);
+                if (container && activeTab !== 'home' && activeTab !== 'extras') {
+                    loadMoreStreams(activeTab, container, currentFolderStreams);
+                }
+            }
+        };
+
+        window.onload = function() { 
+            initCounters(); 
+            renderListsManager(); 
+            checkServerAndFetch(); 
+            initAppEventListeners(); 
+        };
+    </script>
+</body>
+</html>
